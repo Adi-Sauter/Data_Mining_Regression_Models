@@ -1,6 +1,6 @@
 ---
 title: "Assignment 3 - Regression Models"
-author: "Adrian David Sauter"
+authors: "Adrian David Sauter, Eloy Rafael González"
 date: "21746 Data Mining 2022-23"
 output: html_document
 ---
@@ -24,10 +24,10 @@ dat$ID <- NULL
 ## 1 - THE DATA
 ```{r}
 summary(dat$price)
-hist(log(dat$price))
+hist(log(dat$price), main = "Histogram of log(price)", xlab="#price")
 ```
 
-The mean is greater than the median. This tells us that the distribution is 
+The mean is greater than the median. This tells us that the distribution is slightly
 right-skewed. 
 ```{r}
 summary(dat)
@@ -36,6 +36,8 @@ summary(dat)
 ```{r}
 plot(log(dat$price)~dat$bedrooms, xlab="#bedrooms", ylab="log(price)")
 ```
+As we can see, the relation between this two variables isn't linear.
+
 ```{r}
 cor(dat$price,dat$bedrooms)
 ```
@@ -54,21 +56,26 @@ Data distribution:
 summary(dat$bedrooms)
 table(dat$bedrooms)
 ```
+```{r}
+hist(log(dat$bedrooms), main="Histogram of log(bedrooms)", xlab="#bedrooms")
+```
 The data is not that equally distributed, but rather right-skewed (mean > 
 median). Especially strange is the outlier with 33 bedrooms (which was most likely a typo).
+
 ### Number of bathrooms
 ```{r}
 plot(log(dat$price)~dat$bathrooms, xlab="#bathrooms", ylab="log(price)")
 ```
+We can see that in this case there's some linear correlation, since the prices ,generally, slowly rise the more bathrooms the house has.
 
 ```{r}
 cor(dat$price, dat$bathrooms)
 ```
 Regarding the number of bedrooms and bathrooms, it can be seen that for both
-instances, there is a positive correlatio (meaning higher price for larger 
+instances, there is a positive correlation (meaning higher price for larger 
 number of bath-/bedrooms and vice versa). However, as can be seen in the plot 
 and the correlation coefficient, this holds better for bathrooms than for 
-bedrooms. Afer peaking around 6 bedrooms, the price tends to decrease again with
+bedrooms. After peaking around 6 bedrooms, the price tends to decrease again with
 increasing number of bedrooms. For bathrooms, the price has the tendency to 
 increase with larger number of bathrooms.
 
@@ -77,25 +84,54 @@ Data distribution:
 summary(dat$bathrooms)
 table(dat$bathrooms)
 ```
-It isn't clear to me why this feature contains decimal numbers (e.g. 2.25). 
-Nonetheless, the data is slightly left-skewed
+```{r}
+hist(log(dat$bathrooms), main="Histogram of log(bathrooms)", xlab="#bathrooms")
+```
+
+The data is not normally distributed
+
 ### Number of square feet of the house
 ```{r}
 plot(log(dat$price)~dat$sqft_living, xlab="#sqft of the home", 
      ylab="log(price)")
 ```
+
+We can see that there's a relationship between this variables but it seems like the progression is more logarithmic than linear.
+
 ```{r}
 cor(dat$price, dat$sqft_living)
 ```
+
+Data distribution:
+```{r}
+summary(dat$sqft_living)
+```
+```{r}
+hist(log(dat$sqft_living), main="Histogram of log(sqft_living)", xlab="sqft_living")
+```
+Although not with exact precision, the data seems normally distributed.
+
 ### Number of square feet of the lot
 ```{r}
-plot(dat$price~dat$sqft_lot, xlab="#sqft of the lot", ylab="log(price)")
+plot(log(dat$price)~dat$sqft_lot, xlab="#sqft of the lot", ylab="log(price)")
 ```
+There's no linear correlation between this variables.
+
 ```{r}
 cor(dat$price, dat$sqft_lot)
 ```
 The square footage of the home seems to be a far better predictor of the price
 than the square footage of the lot. This can be seen both in the higher correlation coefficient of square footage of the home as well as in the plot. 
+
+Data distribution:
+```{r}
+summary(dat$sqft_lot)
+```
+```{r}
+hist(log(dat$sqft_lot), main="Histogram of log(sqft_lot)", xlab="sqft_lot")
+```
+This variable doesn't quite follow a normal distribution
+
 ### Number of floors
 ```{r}
 boxplot(log(dat$price)~dat$floors, xlab="#floors", ylab="price")
@@ -113,6 +149,11 @@ Data distribution:
 summary(dat$floors)
 table(dat$floors)
 ```
+```{r}
+hist(dat$floors, main = "Histogram of floors", xlab="#floors")
+```
+This variable doesn't follow a normal distribution.
+
 ### View to waterfront
 Transform feature to factor:
 ```{r}
@@ -251,6 +292,7 @@ Data distribution:
 ```{r}
 table(dat$condition)
 ```
+
 There aren't many houses with a value of 1 or 2 regarding condition. 
 Most of the houses are in a good or better than good condition.
 ### Grade of the house
@@ -268,14 +310,16 @@ Data distribution:
 ```{r}
 summary(dat$grade)
 table(dat$grade)
-hist(dat$grade)
+hist(dat$grade, main="Histogram of grade", xlab="#grade")
 ```
 The data is right-skewed, most of the houses have a rating of >= 6.
+
 ### Square feet of the house (apart from basement)
 ```{r}
 plot(log(dat$price)~dat$sqft_above, xlab="sqft of the house", 
      ylab="log(price)")
 ```
+We can see that there's a relationship between those variables although it seems more logarithmic than linear.
 ```{r}
 cor(dat$price, dat$sqft_above)
 ```
@@ -301,12 +345,19 @@ Data distribution:
 ```{r}
 table(dat$sqft_above_1000_range)
 ```
-Most houses are in the 1001-2000 range.
+```{r}
+summary(dat$sqft_above)
+hist(dat$sqft_above)
+```
+
+Most houses are in the 1001-2000 range. The distribution is right-skewed
+
 ### Number of square feet of the basement
 ```{r}
 plot(log(dat$price)~dat$sqft_basement, xlab="sqft of the basement", 
      ylab="log(price)")
 ```
+It can be seen that in general the price grows linearly with this variable. Specially if we don't take into account the case where sqft_basement=0.
 ```{r}
 cor(dat$price, dat$sqft_basement)
 ```
@@ -322,6 +373,17 @@ cor(dat[dat$sqft_basement!=0, "price"],
 ```
 Not taking into account houses without a basement results in a higher 
 correlation coefficient.
+```{r}
+summary(dat$sqft_basement)
+```
+
+
+```{r}
+hist(dat$sqft_basement, main="Histogram of sqft_basement", xlab="sqft basement")
+```
+The distribution is right-skewed
+
+
 ### Year built
 ```{r}
 plot(log(dat$price)~dat$yr_built, xlab="year built", ylab="log(price)")
@@ -365,6 +427,11 @@ Data distribution:
 ```{r}
 summary(dat$yr_built_10_range)
 ```
+```{r}
+hist(dat$yr_built, main="Histogram of yr_built", xlab="yr_built")
+```
+Yr_built doesn't follow a normal distribution.
+
 ### Year renovated
 ```{r}
 plot(log(dat$price)~dat$yr_renovated, xlab="renovated year", ylab="log(price)")
@@ -385,6 +452,12 @@ the samples that weren't renovated?
 cor(dat[dat$yr_renovated!=0, "price"], dat[dat$yr_renovated!=0, "yr_renovated"])
 ```
 There is no significant change.
+
+Data distribution:
+```{r}
+hist(dat$yr_renovated, main="Histogram of yr_renovated", xlab="yr_renovated")
+```
+The data doesn't follow a normal distribution.
 
 ### Zipcode
 ```{r}
@@ -415,6 +488,13 @@ boxplot(log(dat$price)~dat$zipcode_20_range,
         xlab="zipcodes, grouped in ranges of 20", ylab="log(price)")
 ```
 No real trend can be seen when grouping the zipcodes. 
+
+Data distribution:
+```{r}
+hist(dat$zipcode, main="Histogram of zipcode", xlab="zipcode")
+```
+The data doesn't follow a normal distribution.
+
 ### Latitude coordinate
 ```{r}
 plot(log(dat$price)~dat$lat, xlab="latitude coordinate", ylab="log(price)")
@@ -445,8 +525,13 @@ the price of the house.
 
 Data distribution:
 ```{r}
-summary(dat$lat_005_range)
+summary(dat$lat)
 ```
+```{r}
+hist(dat$lat, main="Histogram of lat", xlab="lat")
+```
+The distribution is left-skewed.
+
 ### Longitude coordinate
 ```{r}
 plot(log(dat$price)~dat$long, xlab="longitude coordinate", ylab="log(price)")
@@ -475,6 +560,13 @@ boxplot(log(dat$price)~dat$long_01_range,
 cor(dat$price, dat$long)
 ```
 There is almost no correlation between the longitude coordinate and the price.
+
+Data distribution:
+```{r}
+summary(dat$long)
+hist(dat$long, main="Histogram of long", xlab="long")
+```
+The distribution is right-skewed.
 
 ### Square footage of interior housing of 15 closest neighbors
 ```{r}
@@ -505,8 +597,11 @@ as representative.
 
 Data distribution:
 ```{r}
-summary(dat$sqft_living15_500_range)
+summary(dat$sqft_living15)
+hist(dat$sqft_living15)
 ```
+The distribution is right-skewed.
+
 ### Square footage of land lots of 15 closest neighbors
 ```{r}
 plot(log(dat$price)~dat$sqft_lot15, 
@@ -573,7 +668,7 @@ orig_length = length(dat$price)
 b_sqft_living <- boxplot(dat_red$sqft_living)
 ```
 Let's remove the samples for which the sqft_living-value is below the lower
-or beyone the upper whisker:
+or beyond the upper whisker:
 ```{r}
 l1 <- length(dat_red$price)
 dat_red <- dat_red[dat_red$sqft_living >= b_sqft_living$stats[1] &
@@ -617,4 +712,8 @@ sprintf("old no. of samples: %s, new no. of samples: %s, new dataset contains %s
 ```{r}
 sprintf("Overall, the dataset contains now - after removing outliers - %s%% of the samples of the original dataset", (100*l2)/orig_length)
 ```
-
+```{r}
+summary(dat$sqft_lot15)
+hist(log(dat$sqft_lot15), main="Histogram of log(sqft_lot15", xlab="sqft_lot15")
+```
+This distribution is right skewed
