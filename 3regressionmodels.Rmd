@@ -554,7 +554,6 @@ for (i in names(dat)){
     cor.result <- cor(dat$price, as.numeric(dat[, i]))
     vct_corr <- c(vct_corr, cor.result)
 }
-#dfr_corr <- vct_corr
 names(vct_corr) <- names(dat)
 vct_corr
 ```
@@ -567,14 +566,55 @@ head(dat_red)
 ```
 Now, let's eliminate outliers:
 ```{r}
-
+orig_length = length(dat$price)
 ```
 
-
 ```{r}
+b_sqft_living <- boxplot(dat_red$sqft_living)
 ```
-
-
+Let's remove the samples for which the sqft_living-value is below the lower
+or beyone the upper whisker:
 ```{r}
+l1 <- length(dat_red$price)
+dat_red <- dat_red[dat_red$sqft_living >= b_sqft_living$stats[1] &
+                       dat_red$sqft_living <= b_sqft_living$stats[5], ]
+l2 <- length(dat_red$price)
+sprintf("old no. of samples: %s, new no. of samples: %s, new dataset contains %s%% of the samples of the old dataset", l1, l2, (100*l2)/l1)
+```
+Let's repeat that for the other features as well:
+```{r}
+b_grade <- boxplot(dat_red$grade)
+l1 <- length(dat_red$price)
+dat_red <- dat_red[dat_red$grade >= b_grade$stats[1] &
+                       dat_red$grade <= b_grade$stats[5], ]
+l2 <- length(dat_red$price)
+sprintf("old no. of samples: %s, new no. of samples: %s, new dataset contains %s%% of the samples of the old dataset", l1, l2, (100*l2)/l1)
+```
+```{r}
+b_sqft_above <- boxplot(dat_red$sqft_above)
+l1 <- length(dat_red$price)
+dat_red <- dat_red[dat_red$sqft_above >= b_sqft_above$stats[1] &
+                       dat_red$sqft_above <= b_sqft_above$stats[5], ]
+l2 <- length(dat_red$price)
+sprintf("old no. of samples: %s, new no. of samples: %s, new dataset contains %s%% of the samples of the old dataset", l1, l2, (100*l2)/l1)
+```
+```{r}
+b_sqft_living15 <- boxplot(dat_red$sqft_living15)
+l1 <- length(dat_red$price)
+dat_red <- dat_red[dat_red$sqft_living15 >= b_sqft_living15$stats[1] &
+                       dat_red$sqft_living15 <= b_sqft_living15$stats[5], ]
+l2 <- length(dat_red$price)
+sprintf("old no. of samples: %s, new no. of samples: %s, new dataset contains %s%% of the samples of the old dataset", l1, l2, (100*l2)/l1)
+```
+```{r}
+b_bathrooms <- boxplot(dat_red$bathrooms)
+l1 <- length(dat_red$price)
+dat_red <- dat_red[dat_red$bathrooms >= b_bathrooms$stats[1] &
+                       dat_red$bathrooms <= b_bathrooms$stats[5], ]
+l2 <- length(dat_red$price)
+sprintf("old no. of samples: %s, new no. of samples: %s, new dataset contains %s%% of the samples of the old dataset", l1, l2, (100*l2)/l1)
+```
+```{r}
+sprintf("Overall, the dataset contains now - after removing outliers - %s%% of the samples of the original dataset", (100*l2)/orig_length)
 ```
 
