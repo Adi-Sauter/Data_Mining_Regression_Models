@@ -19,9 +19,14 @@ Since the X- and ID-column contain the same information, we can get rid of one o
 ```{r}
 dat$X <- NULL
 ```
-
 ## 1 - THE DATA
+```{r}
+summary(dat$price)
+hist(log(dat$price))
+```
 
+The mean is greater than the median. This tells us that the distribution is 
+right-skewed. 
 ```{r}
 summary(dat)
 ```
@@ -29,14 +34,12 @@ summary(dat)
 ```{r}
 plot(log(dat$price)~dat$bedrooms, xlab="#bedrooms", ylab="log(price)")
 ```
-
 ```{r}
 cor(dat$price,dat$bedrooms)
 ```
 ```{r}
 max(dat$bedrooms)
 ```
-
 There is one very strange outlier with 33 bedrooms. What does the correlation 
 coefficient look like without that outlier?
 ```{r}
@@ -44,6 +47,13 @@ cor(dat[dat$bedrooms<30, "price"], dat[dat$bedrooms<30, "bedrooms"])
 ```
 The correlation coefficient does go up a little bit, but not significantly.
 
+Data distribution:
+```{r}
+summary(dat$bedrooms)
+table(dat$bedrooms)
+```
+The data is not that equally distributed, but rather right-skewed (mean > 
+median). Especially strange is the outlier with 33 bedrooms (which was most likely a typo).
 ### Number of bathrooms
 ```{r}
 plot(log(dat$price)~dat$bathrooms, xlab="#bathrooms", ylab="log(price)")
@@ -60,12 +70,18 @@ bedrooms. Afer peaking around 6 bedrooms, the price tends to decrease again with
 increasing number of bedrooms. For bathrooms, the price has the tendency to 
 increase with larger number of bathrooms.
 
+Data distribution:
+```{r}
+summary(dat$bathrooms)
+table(dat$bathrooms)
+```
+It isn't clear to me why this feature contains decimal numbers (e.g. 2.25). 
+Nonetheless, the data is slightly left-skewed
 ### Number of square feet of the house
 ```{r}
 plot(log(dat$price)~dat$sqft_living, xlab="#sqft of the home", 
      ylab="log(price)")
 ```
-
 ```{r}
 cor(dat$price, dat$sqft_living)
 ```
@@ -73,13 +89,11 @@ cor(dat$price, dat$sqft_living)
 ```{r}
 plot(dat$price~dat$sqft_lot, xlab="#sqft of the lot", ylab="log(price)")
 ```
-
 ```{r}
 cor(dat$price, dat$sqft_lot)
 ```
 The square footage of the home seems to be a far better predictor of the price
 than the square footage of the lot. This can be seen both in the higher correlation coefficient of square footage of the home as well as in the plot. 
-
 ### Number of floors
 ```{r}
 boxplot(log(dat$price)~dat$floors, xlab="#floors", ylab="price")
@@ -91,6 +105,12 @@ The first thing that pops out here is that the "number of floors"-feature
 doesn't consist of only integers. It's not quite clear to me what a house 
 with 2.5 floors looks like, but either way, there is somewhat of a small 
 positive correlation between the number of floors and the housing price.
+
+Data distribution:
+```{r}
+summary(dat$floors)
+table(dat$floors)
+```
 ### View to waterfront
 ```{r}
 boxplot(log(dat$price)~dat$waterfront, xlab="view to waterfront", 
@@ -106,11 +126,17 @@ mean(dat[dat$waterfront==1, "price"])
 ```{r}
 cor(dat$price, dat$waterfront)
 ```
-It can already be seen in the plot, but the calculation of the mean price based 
+It can already be seen in the plot, but the calculation of the mean price based
 on whether the house has a view to a waterfront or not makes it even more 
 obvious: houses with a view to a waterfront have higher prices than houses 
 without that view. 
 
+Data distribution:
+```{r}
+summary(dat$waterfront)
+table(dat$waterfront)
+```
+There are many more houses without a waterfront view than houses with a waterfront view.
 ### Number of views
 ```{r}
 boxplot(log(dat$price)~dat$view, xlab="#times the house has been viewed", 
@@ -193,6 +219,13 @@ view==0, the standard deviation is not maximal for all view==i [i=0,1,2,3,4]:
 ```{r}
 aggregate(dat$price, list(dat$view), FUN=sd)
 ```
+
+Data distribution
+```{r}
+summary(dat$view)
+table(dat$view)
+```
+Most of the houses haven't been viewed yet.
 ### Condition of the house
 ```{r}
 boxplot(log(dat$price)~dat$condition, xlab="Condition of the house", 
@@ -203,6 +236,14 @@ cor(dat$price, dat$condition)
 ```
 There is a small positive correlation between the condition of the house and 
 the price of the house. 
+
+Data distribution:
+```{r}
+summary(dat$condition)
+table(dat$condition)
+```
+The distribution is right-skewed since the mean is larger than the median.
+There aren't many houses with a value of 1 or 2 regarding condition.
 ### Grade of the house
 ```{r}
 boxplot(log(dat$price)~dat$grade, xlab="grade of the house", ylab="log(price)")
@@ -213,6 +254,14 @@ cor(dat$price, dat$grade)
 There is a nice positive correlation between the price of the house and the 
 grade given to the house. The higher the grade - the more expensive the house 
 tends to be.
+
+Data distribution:
+```{r}
+summary(dat$grade)
+table(dat$grade)
+hist(dat$grade)
+```
+The data is right-skewed, most of the houses have a rating of >= 6.
 ### Square feet of the house (apart from basement)
 ```{r}
 plot(log(dat$price)~dat$sqft_above, xlab="sqft of the house", 
@@ -238,6 +287,12 @@ plot(log(dat$price)~dat$sqft_above_1000_range,
      ylab="log(price)")
 ```
 The trend "more sqft -> higher price" can be seen much easier in this plot.
+
+Data distribution:
+```{r}
+table(dat$sqft_above_1000_range)
+```
+Most houses are in the 1001-2000 range.
 ### Number of square feet of the basement
 ```{r}
 plot(log(dat$price)~dat$sqft_basement, xlab="sqft of the basement", 
@@ -259,7 +314,6 @@ cor(dat[dat$sqft_basement!=0, "price"],
 Not taking into account houses without a basement results in a higher 
 correlation coefficient.
 ### Year built
-
 ```{r}
 plot(log(dat$price)~dat$yr_built, xlab="year built", ylab="log(price)")
 ```
@@ -298,6 +352,10 @@ There is no real trend to be seen in the plots. Along with the very low
 correlation coefficient, it seems as the yr_built-feature isn't a good 
 indicator for the house price.
 
+Data distribution:
+```{r}
+summary(dat$yr_built_10_range)
+```
 ### Year renovated
 ```{r}
 plot(log(dat$price)~dat$yr_renovated, xlab="renovated year", ylab="log(price)")
@@ -347,8 +405,7 @@ head(dat[, c("zipcode", "zipcode_20_range")])
 boxplot(log(dat$price)~dat$zipcode_20_range, 
         xlab="zipcodes, grouped in ranges of 20", ylab="log(price)")
 ```
-No real trend can be seen when grouping the zipcodes.
-
+No real trend can be seen when grouping the zipcodes. 
 ### Latitude coordinate
 ```{r}
 plot(log(dat$price)~dat$lat, xlab="latitude coordinate", ylab="log(price)")
@@ -371,16 +428,17 @@ plot(log(dat$price)~dat$lat_005_range,
 In this plot, it can be seen that the price is maximum for houses with a 
 latitude coordinate in the range of 47.61-47.65. Lower and higher latitudes
 result in a lower price generally.
-
-
 ```{r}
 cor(dat$price, dat$lat)
 ```
 There is a weak-medium positive correlation between the latitude coordinate and
 the price of the house.
 
+Data distribution:
+```{r}
+summary(dat$lat_005_range)
+```
 ### Longitude coordinate
-
 ```{r}
 plot(log(dat$price)~dat$long, xlab="longitude coordinate", ylab="log(price)")
 ```
@@ -436,6 +494,10 @@ plot above, i.e. the one in the 1-500 range. But that is due to the fact that
 there are only 2 samples in this range and this sould therefore not be regarded
 as representative.
 
+Data distribution:
+```{r}
+summary(dat$sqft_living15_500_range)
+```
 ### Square footage of land lots of 15 closest neighbors
 ```{r}
 plot(log(dat$price)~dat$sqft_lot15, 
@@ -474,9 +536,6 @@ cor(dat$price,dat$sqft_lot15)
 ```
 There is almost no correlation between the sqft_lot15-feature and the price
 of the houses. 
-
-
-
 
 
 ```{r}
