@@ -4,9 +4,6 @@ author: "Adrian David Sauter"
 date: "21746 Data Mining 2022-23"
 output: html_document
 ---
-
-
-Hello
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
