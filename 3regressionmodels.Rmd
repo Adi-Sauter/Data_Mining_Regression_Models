@@ -15,9 +15,11 @@ head(dat)
 ```{r}
 all(dat$X==dat$ID)
 ```
-Since the X- and ID-column contain the same information, we can get rid of one of them.
+Since the X- and ID-column contain the same information and are irrelevant 
+in predicting the housing price, we can get rid of them.
 ```{r}
 dat$X <- NULL
+dat$ID <- NULL
 ```
 ## 1 - THE DATA
 ```{r}
@@ -112,19 +114,22 @@ summary(dat$floors)
 table(dat$floors)
 ```
 ### View to waterfront
+Transform feature to factor:
+```{r}
+dat$waterfront <- as.factor(dat$waterfront)
+levels(dat$waterfront) <- c("No-Waterfront", "Waterfront")
+```
+
 ```{r}
 boxplot(log(dat$price)~dat$waterfront, xlab="view to waterfront", 
      ylab="log(price)")
 ```
 
 ```{r}
-mean(dat[dat$waterfront==0, "price"])
+mean(dat[dat$waterfront=="No-Waterfront", "price"])
 ```
 ```{r}
-mean(dat[dat$waterfront==1, "price"])
-```
-```{r}
-cor(dat$price, dat$waterfront)
+mean(dat[dat$waterfront=="Waterfront", "price"])
 ```
 It can already be seen in the plot, but the calculation of the mean price based
 on whether the house has a view to a waterfront or not makes it even more 
@@ -227,23 +232,27 @@ table(dat$view)
 ```
 Most of the houses haven't been viewed yet.
 ### Condition of the house
+Transform feature to factor:
+```{r}
+dat$condition <- as.factor(dat$condition)
+levels(dat$condition) <- c("Bad Condition", "Average Condition", "Good Condition", "Very Good Condition", "Excellent Condition")
+```
 ```{r}
 boxplot(log(dat$price)~dat$condition, xlab="Condition of the house", 
         ylab="log(price)")
 ```
 ```{r}
-cor(dat$price, dat$condition)
+aggregate(dat$price~dat$condition, FUN=mean)
 ```
-There is a small positive correlation between the condition of the house and 
-the price of the house. 
+It can be seen that the price tends to go up with a better condition of the 
+house.
 
 Data distribution:
 ```{r}
-summary(dat$condition)
 table(dat$condition)
 ```
-The distribution is right-skewed since the mean is larger than the median.
-There aren't many houses with a value of 1 or 2 regarding condition.
+There aren't many houses with a value of 1 or 2 regarding condition. 
+Most of the houses are in a good or better than good condition.
 ### Grade of the house
 ```{r}
 boxplot(log(dat$price)~dat$grade, xlab="grade of the house", ylab="log(price)")
@@ -537,17 +546,28 @@ cor(dat$price,dat$sqft_lot15)
 There is almost no correlation between the sqft_lot15-feature and the price
 of the houses. 
 
-
+Now, it's time to select the most useful features. Let's take a look at the
+correlations: 
 ```{r}
-summary(lm(price~., data=dat))
+vct_corr <- numeric(0)
+for (i in names(dat)){
+    cor.result <- cor(dat$price, as.numeric(dat[, i]))
+    vct_corr <- c(vct_corr, cor.result)
+}
+#dfr_corr <- vct_corr
+names(vct_corr) <- names(dat)
+vct_corr
 ```
-
-
+Let's remove all features with a low correlation:
 ```{r}
+library(dplyr)
+dat_red <- select(dat, c(price, bathrooms, sqft_living, grade, 
+                     sqft_above, sqft_living15))
+head(dat_red)
 ```
-
-
+Now, let's eliminate outliers:
 ```{r}
+
 ```
 
 
