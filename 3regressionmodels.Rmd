@@ -94,11 +94,11 @@ The data is not normally distributed
 
 ### Number of square feet of the house
 ```{r}
-plot(log(dat$price)~dat$sqft_living, xlab="#sqft of the home", 
-     ylab="log(price)")
+plot(dat$price~dat$sqft_living, xlab="#sqft of the home", 
+     ylab="price")
 ```
 
-We can see that there's a relationship between this variables but it seems like the progression is more logarithmic than linear.
+We can see that there's a relationship between this variables but it seems like the progression is not quite linear but maybe quadratic or exponential.
 
 ```{r}
 cor(dat$price, dat$sqft_living)
@@ -321,7 +321,8 @@ The data is right-skewed, most of the houses have a rating of >= 6.
 plot(log(dat$price)~dat$sqft_above, xlab="sqft of the house", 
      ylab="log(price)")
 ```
-We can see that there's a relationship between those variables although it seems more logarithmic than linear.
+We can see that there's a relationship between those variables although it doesn't seem quite linear.
+
 ```{r}
 cor(dat$price, dat$sqft_above)
 ```
@@ -712,7 +713,7 @@ dat_red_out <- dat_red_out[dat_red_out$sqft_basement >= b_sqft_basement$stats[1]
 l2 <- length(dat_red_out$price)
 sprintf("previous no. of samples: %s, new no. of samples: %s, new dataset contains %.2f%% of the samples of the previous dataset", l1, l2, (100*l2)/l1)
 ```
-Since the view-feature isn't continous and only has 5 levels, it doesn't make 
+Since the view-feature isn't continuous and only has 5 levels, it doesn't make 
 sense to remove outliers based on a boxplot for this feature.
 
 ```{r}
@@ -780,16 +781,104 @@ datasets dat_red and dat_red_out. Compare the results and improve on the better
 model. For the next models, we should take the correlation inbetween the 
 variables into account (see the ggcorr-plot above).
 ```{r}
+model_1 = lm(price ~ ., data=dat_red)
+model_1
 ```
+We can see that sqft_living doesn't give us a result on the correlation, so we're going to remove it, which is something that already made sense to do since it had a very high correlation with sqft_above, which meant that they both gave very similar information.
+
+```{r}
+dat_red$sqft_living<-NULL
+
+```
+```{r}
+model_1 = lm(price ~ ., data=dat_red)
+model_1
+```
+
+
+
+
+```{r}
+summary(model_1)
+```
+As we can see given our Pr(>|t|) results, all the variables are likely to have a relationship with price except for sqft_living15. This model gave us a 0.64 R-squared value, let's try to improve it.
 ## Model 2
+Let's now try using dat_red_out, which is the dataset without removing the outliers.
 ```{r}
+dat_red_out$sqft_living <- NULL
 ```
+
+```{r}
+model_2 = lm(price ~ ., data=dat_red_out)
+model_2
+```
+```{r}
+summary(model_2)
+```
+The dataset without the outliers (dat_red) gave us a significantly better result so we're gonna stick with it for the next iterations.
+
 ## Model 3
+The effect of sqft_above (sqft of the house without the basement) may not be constant throughout all values (in fact we could see when plotting it with price that their relation wasn't quite linear), therefore we will introduce a higher-order term by creating a new variable.
 ```{r}
+dat_red$sqft_above2 <- dat_red$sqft_above^2
 ```
+
+```{r}
+model_3 = lm(price ~ ., data=dat_red)
+model_3
+```
+```{r}
+summary(model_3)
+```
+This model has a slightly better R-squared result than model 1. From 0.6414 to 0.6709.
+
 ## Model 4
+It makes sense for houses with basement to have a higher price than houses without it. Let's add that new variable.
+
 ```{r}
+dat_red$basement <- ifelse(dat_red$sqft_basement>0, 1,0)
 ```
+```{r}
+model_4 = lm(price ~ ., data=dat_red)
+model_4
+```
+```{r}
+summary(model_4)
+```
+The R-squared value has barely improved.
+
 ## Model 5
+It could be that grade has a combined impact with other variables, for example if the house has two or more floors and the grade is good, the price would be higher. 
 ```{r}
+dat_red$floors2 <- ifelse(dat$floors >= 2, 1, 0)
+dat_red$grade10 <- ifelse(dat_red$grade >= 10, 1, 0)
+
 ```
+We've also added back waterfront with the premise that if the grade of the house is good and it has a view to a waterfront, the price will be higher.
+```{r}
+model_5 = lm(price ~ . +floors2*grade10+dat$waterfront*grade10, data=dat_red)
+summary(model_5)
+```
+
+The model has improved the value of R-squared from 0.6712 to 0.6935.
+
+### Model 6
+Let's start again and use the dataset with all the variables, since even if they don't have a correlation with price it could be that some relationships between them do have a correlation.
+```{r}
+model_6 = lm(price ~ . , data=dat)
+summary(model_6)
+```
+The R-squared value has significantly improved.
+
+### Model 7
+Let's now add the improvements that we used before.
+```{r}
+dat$sqft_basement<-NULL
+```
+
+
+```{r}
+model_6 = lm(price ~ . +dat_red$sqft_above2 +dat_red$floors2*dat_red$grade10+waterfront*dat_red$grade10 , data=dat)
+summary(model_6)
+```
+The R-squared value has slightly improved.
