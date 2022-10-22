@@ -20,6 +20,8 @@ in predicting the housing price, we can get rid of them.
 ```{r}
 dat$X <- NULL
 dat$ID <- NULL
+# keep original data set stored because later, columns will be added to dat
+orig_dat <- dat
 ```
 ## 1 - THE DATA
 ```{r}
@@ -640,9 +642,14 @@ cor(dat$price,dat$sqft_lot15)
 ```
 There is almost no correlation between the sqft_lot15-feature and the price
 of the houses. 
+```{r}
+summary(dat$sqft_lot15)
+hist(log(dat$sqft_lot15), main="Histogram of log(sqft_lot15", xlab="sqft_lot15")
+```
+This distribution is right-skewed.
 
 Now, it's time to select the most useful features. Let's take a look at the
-correlations: 
+correlations with the dependent variable: 
 ```{r}
 vct_corr <- numeric(0)
 for (i in names(dat)){
@@ -655,65 +662,134 @@ vct_corr
 Let's remove all features with a low correlation:
 ```{r}
 library(dplyr)
-dat_red <- select(dat, c(price, bathrooms, sqft_living, grade, 
-                     sqft_above, sqft_living15))
+dat_red <- select(dat, c(price, lat, bedrooms, sqft_basement, view, bathrooms,
+                         sqft_living15, sqft_above, grade, sqft_living))
 head(dat_red)
 ```
-Now, let's eliminate outliers:
 ```{r}
-orig_length = length(dat$price)
+library(GGally)
+ggcorr(data=dat_red, label = TRUE, label_size = 3, label_round = 3)
+```
+The selected features with the highest correlation with price (sqft_living, 
+grade, sqft_above and sqft_living15) all have a high correlation with
+each other, which has to be kept in mind when working on the model later.
+```{r}
+ggpairs(dat_red)
 ```
 
+
+Now, let's eliminate outliers:
 ```{r}
-b_sqft_living <- boxplot(dat_red$sqft_living)
+orig_length <- length(dat$price)
+dat_red_out <- dat_red
 ```
-Let's remove the samples for which the sqft_living-value is below the lower
+
+
+Let's remove the samples for which the lat-value is below the lower
 or beyond the upper whisker:
 ```{r}
-l1 <- length(dat_red$price)
-dat_red <- dat_red[dat_red$sqft_living >= b_sqft_living$stats[1] &
-                       dat_red$sqft_living <= b_sqft_living$stats[5], ]
-l2 <- length(dat_red$price)
-sprintf("old no. of samples: %s, new no. of samples: %s, new dataset contains %s%% of the samples of the old dataset", l1, l2, (100*l2)/l1)
+b_lat <- boxplot(dat_red_out$lat)
+l1 <- length(dat_red_out$price)
+dat_red_out <- dat_red_out[dat_red_out$lat >= b_lat$stats[1] &
+                       dat_red_out$lat <= b_lat$stats[5], ]
+l2 <- length(dat_red_out$price)
+sprintf("previous no. of samples: %s, new no. of samples: %s, new dataset contains %.2f%% of the samples of the previous dataset", l1, l2, (100*l2)/l1)
 ```
 Let's repeat that for the other features as well:
 ```{r}
-b_grade <- boxplot(dat_red$grade)
-l1 <- length(dat_red$price)
-dat_red <- dat_red[dat_red$grade >= b_grade$stats[1] &
-                       dat_red$grade <= b_grade$stats[5], ]
-l2 <- length(dat_red$price)
-sprintf("old no. of samples: %s, new no. of samples: %s, new dataset contains %s%% of the samples of the old dataset", l1, l2, (100*l2)/l1)
+b_bedrooms <- boxplot(dat_red_out$bedrooms)
+l1 <- length(dat_red_out$price)
+dat_red_out <- dat_red_out[dat_red_out$bedrooms >= b_bedrooms$stats[1] &
+                       dat_red_out$bedrooms <= b_bedrooms$stats[5], ]
+l2 <- length(dat_red_out$price)
+sprintf("previous no. of samples: %s, new no. of samples: %s, new dataset contains %.2f%% of the samples of the previous dataset", l1, l2, (100*l2)/l1)
 ```
 ```{r}
-b_sqft_above <- boxplot(dat_red$sqft_above)
-l1 <- length(dat_red$price)
-dat_red <- dat_red[dat_red$sqft_above >= b_sqft_above$stats[1] &
-                       dat_red$sqft_above <= b_sqft_above$stats[5], ]
-l2 <- length(dat_red$price)
-sprintf("old no. of samples: %s, new no. of samples: %s, new dataset contains %s%% of the samples of the old dataset", l1, l2, (100*l2)/l1)
+b_sqft_basement <- boxplot(dat_red_out$sqft_basement)
+l1 <- length(dat_red_out$price)
+dat_red_out <- dat_red_out[dat_red_out$sqft_basement >= b_sqft_basement$stats[1] &
+                       dat_red_out$sqft_basement <= b_sqft_basement$stats[5], ]
+l2 <- length(dat_red_out$price)
+sprintf("previous no. of samples: %s, new no. of samples: %s, new dataset contains %.2f%% of the samples of the previous dataset", l1, l2, (100*l2)/l1)
+```
+Since the view-feature isn't continous and only has 5 levels, it doesn't make 
+sense to remove outliers based on a boxplot for this feature.
+
+```{r}
+b_bathrooms <- boxplot(dat_red_out$bathrooms)
+l1 <- length(dat_red_out$price)
+dat_red_out <- dat_red_out[dat_red_out$bathrooms >= b_bathrooms$stats[1] &
+                       dat_red_out$bathrooms <= b_bathrooms$stats[5], ]
+l2 <- length(dat_red_out$price)
+sprintf("previous no. of samples: %s, new no. of samples: %s, new dataset contains %.2f%% of the samples of the previous dataset", l1, l2, (100*l2)/l1)
 ```
 ```{r}
-b_sqft_living15 <- boxplot(dat_red$sqft_living15)
-l1 <- length(dat_red$price)
-dat_red <- dat_red[dat_red$sqft_living15 >= b_sqft_living15$stats[1] &
-                       dat_red$sqft_living15 <= b_sqft_living15$stats[5], ]
-l2 <- length(dat_red$price)
-sprintf("old no. of samples: %s, new no. of samples: %s, new dataset contains %s%% of the samples of the old dataset", l1, l2, (100*l2)/l1)
+b_sqft_living15 <- boxplot(dat_red_out$sqft_living15)
+l1 <- length(dat_red_out$price)
+dat_red_out <- dat_red_out[dat_red_out$sqft_living15 >= b_sqft_living15$stats[1] &
+                       dat_red_out$sqft_living15 <= b_sqft_living15$stats[5], ]
+l2 <- length(dat_red_out$price)
+sprintf("previous no. of samples: %s, new no. of samples: %s, new dataset contains %.2f%% of the samples of the previous dataset", l1, l2, (100*l2)/l1)
+```
+
+```{r}
+b_sqft_above <- boxplot(dat_red_out$sqft_above)
+l1 <- length(dat_red_out$price)
+dat_red_out <- dat_red_out[dat_red_out$sqft_above >= b_sqft_above$stats[1] &
+                       dat_red_out$sqft_above <= b_sqft_above$stats[5], ]
+l2 <- length(dat_red_out$price)
+sprintf("previous no. of samples: %s, new no. of samples: %s, new dataset contains %.2f%% of the samples of the previous dataset", l1, l2, (100*l2)/l1)
+```
+
+```{r}
+b_grade <- boxplot(dat_red_out$grade)
+l1 <- length(dat_red_out$price)
+dat_red_out <- dat_red_out[dat_red_out$grade >= b_grade$stats[1] &
+                       dat_red_out$grade <= b_grade$stats[5], ]
+l2 <- length(dat_red_out$price)
+sprintf("previous no. of samples: %s, new no. of samples: %s, new dataset contains %.2f%% of the samples of the previous dataset", l1, l2, (100*l2)/l1)
+```
+
+```{r}
+b_sqft_living <- boxplot(dat_red_out$sqft_living)
+l1 <- length(dat_red_out$price)
+dat_red_out <- dat_red_out[dat_red_out$sqft_living >= b_sqft_living$stats[1] &
+                       dat_red_out$sqft_living <= b_sqft_living$stats[5], ]
+l2 <- length(dat_red_out$price)
+sprintf("previous no. of samples: %s, new no. of samples: %s, new dataset contains %.2f%% of the samples of the previous dataset", l1, l2, (100*l2)/l1)
+```
+
+```{r}
+sprintf("Overall, the dataset contains now - after removing outliers - %.2f%% of the samples of the original dataset", (100*l2)/orig_length)
+```
+To get an overview over the relationships between the selected features and the 
+dependent variable:
+```{r}
+ggcorr(data=dat_red_out, label = TRUE, label_size = 3, label_round = 3)
 ```
 ```{r}
-b_bathrooms <- boxplot(dat_red$bathrooms)
-l1 <- length(dat_red$price)
-dat_red <- dat_red[dat_red$bathrooms >= b_bathrooms$stats[1] &
-                       dat_red$bathrooms <= b_bathrooms$stats[5], ]
-l2 <- length(dat_red$price)
-sprintf("old no. of samples: %s, new no. of samples: %s, new dataset contains %s%% of the samples of the old dataset", l1, l2, (100*l2)/l1)
+ggpairs(dat_red_out)
 ```
+
+# The Models
+## Model 1
+Idea: 
+predict price with all the other variables taken into account
+(i.e. price~lat+bedroom+...+sqft_livng) for the two
+datasets dat_red and dat_red_out. Compare the results and improve on the better
+model. For the next models, we should take the correlation inbetween the 
+variables into account (see the ggcorr-plot above).
 ```{r}
-sprintf("Overall, the dataset contains now - after removing outliers - %s%% of the samples of the original dataset", (100*l2)/orig_length)
 ```
+## Model 2
 ```{r}
-summary(dat$sqft_lot15)
-hist(log(dat$sqft_lot15), main="Histogram of log(sqft_lot15", xlab="sqft_lot15")
 ```
-This distribution is right skewed
+## Model 3
+```{r}
+```
+## Model 4
+```{r}
+```
+## Model 5
+```{r}
+```
