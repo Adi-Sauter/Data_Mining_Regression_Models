@@ -20,13 +20,19 @@ in predicting the housing price, we can get rid of them.
 ```{r}
 dat$X <- NULL
 dat$ID <- NULL
-# keep original data set stored because later, columns will be added to dat
-orig_dat <- dat
 ```
 ## 1 - THE DATA
 ```{r}
 summary(dat$price)
-hist(log(dat$price), main = "Histogram of log(price)", xlab="#price")
+hist(dat$price, main = "Histogram of price", xlab="price")
+```
+
+The mean is greater than the median. This tells us that the distribution is 
+slightly right-skewed. Let's log-transform the price-variable and check take 
+another look at the distribution.
+```{r}
+dat$price <- log(dat$price)
+hist(dat$price, main = "Histogram of log(price)", xlab="price")
 ```
 
 The mean is greater than the median. This tells us that the distribution is slightly
@@ -36,9 +42,11 @@ summary(dat)
 ```
 ### Number of bedrooms
 ```{r}
-plot(log(dat$price)~dat$bedrooms, xlab="#bedrooms", ylab="log(price)")
+plot(dat$price~dat$bedrooms, xlab="#bedrooms", ylab="log(price)")
 ```
-As we can see, the relation between this two variables isn't linear.
+
+Since the number of bedrooms isn't a continuous variable, the distribution
+can't look perfectly linear. However, it looks fairly linear. 
 
 ```{r}
 cor(dat$price,dat$bedrooms)
@@ -59,16 +67,27 @@ summary(dat$bedrooms)
 table(dat$bedrooms)
 ```
 ```{r}
-hist(log(dat$bedrooms), main="Histogram of log(bedrooms)", xlab="#bedrooms")
+hist(dat$bedrooms, main="Histogram of bedrooms", xlab="#bedrooms")
 ```
-The data is not that equally distributed, but rather right-skewed (mean > 
-median). Especially strange is the outlier with 33 bedrooms (which was most likely a typo).
 
+The data is not that equally distributed, but rather right-skewed (mean > 
+median). Especially strange is the outlier with 33 bedrooms 
+(which was most likely a typo).
+
+```{r}
+plot(lm(price~bedrooms, data=dat), which=c(1,2))
+```
+The residual vs fitted plot shows a fairly linear trend with exception of the 
+one outlier.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Number of bathrooms
 ```{r}
-plot(log(dat$price)~dat$bathrooms, xlab="#bathrooms", ylab="log(price)")
+plot(dat$price~dat$bathrooms, xlab="#bathrooms", ylab="log(price)")
 ```
-We can see that in this case there's some linear correlation, since the prices ,generally, slowly rise the more bathrooms the house has.
+
+We can see that in this case there's some linear correlation, since the prices,
+generally, slowly rise the more bathrooms the house has.
 
 ```{r}
 cor(dat$price, dat$bathrooms)
@@ -77,8 +96,8 @@ Regarding the number of bedrooms and bathrooms, it can be seen that for both
 instances, there is a positive correlation (meaning higher price for larger 
 number of bath-/bedrooms and vice versa). However, as can be seen in the plot 
 and the correlation coefficient, this holds better for bathrooms than for 
-bedrooms. After peaking around 6 bedrooms, the price tends to decrease again with
-increasing number of bedrooms. For bathrooms, the price has the tendency to 
+bedrooms. After peaking around 6 bedrooms, the price tends to decrease again 
+with increasing number of bedrooms. For bathrooms, the price has the tendency to 
 increase with larger number of bathrooms.
 
 Data distribution:
@@ -87,56 +106,85 @@ summary(dat$bathrooms)
 table(dat$bathrooms)
 ```
 ```{r}
-hist(log(dat$bathrooms), main="Histogram of log(bathrooms)", xlab="#bathrooms")
+hist(dat$bathrooms, main="Histogram of bathrooms", xlab="#bathrooms")
 ```
 
-The data is not normally distributed
-
+The data is not normally distributed. 
+```{r}
+plot(lm(price~bathrooms, data=dat), which=c(1,2))
+```
+The residual vs fitted plot shows a fairly linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Number of square feet of the house
 ```{r}
 plot(dat$price~dat$sqft_living, xlab="#sqft of the home", 
-     ylab="price")
+     ylab="log(price)")
 ```
 
-We can see that there's a relationship between this variables but it seems like the progression is not quite linear but maybe quadratic or exponential.
-
+We can see that there's a relationship between this variables but it seems like 
+the progression is not quite linear but maybe quadratic or exponential.
 ```{r}
 cor(dat$price, dat$sqft_living)
 ```
-
 Data distribution:
 ```{r}
 summary(dat$sqft_living)
 ```
 ```{r}
-hist(log(dat$sqft_living), main="Histogram of log(sqft_living)", xlab="sqft_living")
+hist(dat$sqft_living, main="Histogram of sqft_living", 
+     xlab="sqft_living")
+```
+The data doesn't look normally distributed, let's log-transform it:
+```{r}
+dat$sqft_living <- log(dat$sqft_living)
+hist(dat$sqft_living, main="Histogram of log(sqft_living)", 
+     xlab="log(sqft_living)")
 ```
 Although not with exact precision, the data seems normally distributed.
+```{r}
+plot(lm(price~sqft_living, data=dat), which=c(1,2))
+```
 
+The residual vs fitted plot shows a quadratic linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Number of square feet of the lot
 ```{r}
-plot(log(dat$price)~dat$sqft_lot, xlab="#sqft of the lot", ylab="log(price)")
+plot(dat$price~dat$sqft_lot, xlab="#sqft of the lot", ylab="log(price)")
 ```
-There's no linear correlation between this variables.
+There's no linear correlation between these variables.
 
 ```{r}
 cor(dat$price, dat$sqft_lot)
 ```
 The square footage of the home seems to be a far better predictor of the price
-than the square footage of the lot. This can be seen both in the higher correlation coefficient of square footage of the home as well as in the plot. 
+than the square footage of the lot. This can be seen both in the higher 
+correlation coefficient of square footage of the home as well as in the plot. 
 
 Data distribution:
 ```{r}
 summary(dat$sqft_lot)
 ```
 ```{r}
-hist(log(dat$sqft_lot), main="Histogram of log(sqft_lot)", xlab="sqft_lot")
+hist(dat$sqft_lot, main="Histogram of sqft_lot", xlab="sqft_lot")
 ```
-This variable doesn't quite follow a normal distribution
+Let's log-transform it: 
+```{r}
+dat$sqft_lot <- log(dat$sqft_lot)
+hist(dat$sqft_lot, main="Histogram of log(sqft_lot)", xlab="log(sqft_lot)")
+```
 
+This variable doesn't quite follow a normal distribution.
+```{r}
+plot(lm(price~sqft_lot, data=dat), which=c(1,2))
+```
+The residual vs fitted plot shows a fairly linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Number of floors
 ```{r}
-boxplot(log(dat$price)~dat$floors, xlab="#floors", ylab="price")
+boxplot(dat$price~dat$floors, xlab="#floors", ylab="log(price)")
 ```
 ```{r}
 cor(dat$price, dat$floors)
@@ -155,7 +203,13 @@ table(dat$floors)
 hist(dat$floors, main = "Histogram of floors", xlab="#floors")
 ```
 This variable doesn't follow a normal distribution.
+```{r}
+plot(lm(price~floors, data=dat), which=c(1,2))
+```
 
+The residual vs fitted plot shows a barely linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### View to waterfront
 Transform feature to factor:
 ```{r}
@@ -164,7 +218,7 @@ levels(dat$waterfront) <- c("No-Waterfront", "Waterfront")
 ```
 
 ```{r}
-boxplot(log(dat$price)~dat$waterfront, xlab="view to waterfront", 
+boxplot(dat$price~dat$waterfront, xlab="view to waterfront", 
      ylab="log(price)")
 ```
 
@@ -178,16 +232,15 @@ It can already be seen in the plot, but the calculation of the mean price based
 on whether the house has a view to a waterfront or not makes it even more 
 obvious: houses with a view to a waterfront have higher prices than houses 
 without that view. 
-
 Data distribution:
 ```{r}
 summary(dat$waterfront)
-table(dat$waterfront)
 ```
-There are many more houses without a waterfront view than houses with a waterfront view.
+There are way more houses without a waterfront view than houses with a 
+waterfront view.
 ### Number of views
 ```{r}
-boxplot(log(dat$price)~dat$view, xlab="#times the house has been viewed", 
+boxplot(dat$price~dat$view, xlab="#times the house has been viewed", 
         ylab="log(price)")
 ```
 ```{r}
@@ -209,16 +262,16 @@ summary(dat[dat$view==0, "price"])
 # and 
 # (3rd_quartile) + 1.5*(IQR) = (3rd_quartile) + 1.5*(3rd_quartile-1st_quartile)
 length(dat[dat$view==0 
-           & log(dat$price) < log(312000) - 1.5*(log(600000)-log(312000))
-           | log(dat$price) > log(600000) + 1.5*(log(600000)-log(312000)),
+           & dat$price < 12.65 - 1.5*(13.30-12.65)
+           | dat$price > 13.30 + 1.5*(13.30-12.65),
            "price"])
 ```
 The fraction outliers/total_number_observations is more suitable to discover
 the amount of outliers for a specific value of a feature:
 ```{r}
 length(dat[dat$view==0 
-           & log(dat$price) < log(312000) - 1.5*(log(600000)-log(312000))
-           | log(dat$price) > log(600000) + 1.5*(log(600000)-log(312000)),
+           & dat$price < 12.65 - 1.5*(13.30-12.65)
+           | dat$price > 12.65 + 1.5*(13.30-12.65),
            "price"]) / length(dat[dat$view==0, "price"])
 ```
 Let's do the same for the other values of dat$view:
@@ -227,8 +280,8 @@ summary(dat[dat$view==1, "price"])
 ```
 ```{r}
 length(dat[dat$view==1 
-           & log(dat$price) < log(515750) - 1.5*(log(947500)-log(515750))
-           | log(dat$price) > log(947500) + 1.5*(log(947500)-log(515750)),
+           & dat$price < 13.15 - 1.5*(13.76-13.15)
+           | dat$price > 13.76 + 1.5*(13.76-13.15),
            "price"]) / length(dat[dat$view==1, "price"])
 ```
 ```{r}
@@ -236,8 +289,8 @@ summary(dat[dat$view==2, "price"])
 ```
 ```{r}
 length(dat[dat$view==2 
-           & log(dat$price) < log(489500) - 1.5*(log(935500)-log(489500))
-           | log(dat$price) > log(935500) + 1.5*(log(935500)-log(489500)),
+           & dat$price < 13.10 - 1.5*(13.75-13.10)
+           | dat$price > 13.75 + 1.5*(13.75-13.10),
            "price"]) / length(dat[dat$view==2, "price"])
 ```
 ```{r}
@@ -245,8 +298,8 @@ summary(dat[dat$view==3, "price"])
 ```
 ```{r}
 length(dat[dat$view==3 
-           & log(dat$price) < log(582525) - 1.5*(log(1320000)-log(582525))
-           | log(dat$price) > log(1320000) + 1.5*(log(1320000)-log(582525)),
+           & dat$price < 13.28 - 1.5*(14.09-13.28)
+           | dat$price > 14.09 + 1.5*(14.09-13.28),
            "price"]) / length(dat[dat$view==2, "price"])
 ```
 ```{r}
@@ -254,8 +307,8 @@ summary(dat[dat$view==4, "price"])
 ```
 ```{r}
 length(dat[dat$view==4 
-           & log(dat$price) < log(811000) - 1.5*(log(1705000)-log(811000))
-           | log(dat$price) > log(1705000) + 1.5*(log(1705000)-log(811000)),
+           & dat$price < 13.61 - 1.5*(14.35-13.61)
+           | dat$price > 14.35 + 1.5*(14.35-13.61),
            "price"]) / length(dat[dat$view==2, "price"])
 ```
 The highest outlier-to-non-outlier-ratio can be found for view==1, although the
@@ -267,13 +320,19 @@ view==0, the standard deviation is not maximal for all view==i [i=0,1,2,3,4]:
 ```{r}
 aggregate(dat$price, list(dat$view), FUN=sd)
 ```
-
 Data distribution
 ```{r}
 summary(dat$view)
 table(dat$view)
 ```
 Most of the houses haven't been viewed yet.
+```{r}
+plot(lm(price~view, data=dat), which=c(1,2))
+```
+
+The residual vs fitted plot shows a fairly linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Condition of the house
 Transform feature to factor:
 ```{r}
@@ -281,7 +340,7 @@ dat$condition <- as.factor(dat$condition)
 levels(dat$condition) <- c("Bad Condition", "Average Condition", "Good Condition", "Very Good Condition", "Excellent Condition")
 ```
 ```{r}
-boxplot(log(dat$price)~dat$condition, xlab="Condition of the house", 
+boxplot(dat$price~dat$condition, xlab="Condition of the house", 
         ylab="log(price)")
 ```
 ```{r}
@@ -289,17 +348,22 @@ aggregate(dat$price~dat$condition, FUN=mean)
 ```
 It can be seen that the price tends to go up with a better condition of the 
 house.
-
 Data distribution:
 ```{r}
 table(dat$condition)
 ```
-
 There aren't many houses with a value of 1 or 2 regarding condition. 
 Most of the houses are in a good or better than good condition.
+```{r}
+plot(lm(price~condition, data=dat), which=c(1,2))
+```
+
+The residual vs fitted plot shows a fairly linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Grade of the house
 ```{r}
-boxplot(log(dat$price)~dat$grade, xlab="grade of the house", ylab="log(price)")
+boxplot(dat$price~dat$grade, xlab="grade of the house", ylab="log(price)")
 ```
 ```{r}
 cor(dat$price, dat$grade)
@@ -312,16 +376,24 @@ Data distribution:
 ```{r}
 summary(dat$grade)
 table(dat$grade)
-hist(dat$grade, main="Histogram of grade", xlab="#grade")
+hist(dat$grade, main="Histogram of grade", xlab="grade")
 ```
-The data is right-skewed, most of the houses have a rating of >= 6.
 
+The data is right-skewed, most of the houses have a rating of >= 6.
+```{r}
+plot(lm(price~grade, data=dat), which=c(1,2))
+```
+
+The residual vs fitted plot shows a fairly linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Square feet of the house (apart from basement)
 ```{r}
-plot(log(dat$price)~dat$sqft_above, xlab="sqft of the house", 
+plot(dat$price~dat$sqft_above, xlab="sqft of the house", 
      ylab="log(price)")
 ```
-We can see that there's a relationship between those variables although it doesn't seem quite linear.
+We can see that there's a relationship between those variables although it 
+doesn't seem quite linear.
 
 ```{r}
 cor(dat$price, dat$sqft_above)
@@ -338,12 +410,11 @@ dat$sqft_above_1000_range <- cut(dat$sqft_above, breaks=seq(0,9000,1000),
 head(dat[, c("sqft_above", "sqft_above_1000_range")])
 ```
 ```{r}
-plot(log(dat$price)~dat$sqft_above_1000_range, 
+plot(dat$price~dat$sqft_above_1000_range, 
      xlab="sqft of the house (without basement) in range of 1000",
      ylab="log(price)")
 ```
 The trend "more sqft -> higher price" can be seen much easier in this plot.
-
 Data distribution:
 ```{r}
 table(dat$sqft_above_1000_range)
@@ -353,14 +424,27 @@ summary(dat$sqft_above)
 hist(dat$sqft_above)
 ```
 
-Most houses are in the 1001-2000 range. The distribution is right-skewed
+The distribution is right-skewed. Let's log-transform the sqft_above-variable.
+```{r}
+dat$sqft_above <- log(dat$sqft_above)
+hist(dat$sqft_above, main="Histogram of log(sqft_above)", 
+     xlab="log(sqft_above)")
+```
 
+```{r}
+plot(lm(price~sqft_above, data=dat), which=c(1,2))
+```
+
+The residual vs fitted plot shows a fairly quadratic trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Number of square feet of the basement
 ```{r}
-plot(log(dat$price)~dat$sqft_basement, xlab="sqft of the basement", 
+plot(dat$price~dat$sqft_basement, xlab="sqft of the basement", 
      ylab="log(price)")
 ```
-It can be seen that in general the price grows linearly with this variable. Specially if we don't take into account the case where sqft_basement=0.
+It can be seen that in general the price grows linearly with this variable. 
+Specially if we don't take into account the case where sqft_basement=0.
 ```{r}
 cor(dat$price, dat$sqft_basement)
 ```
@@ -384,12 +468,23 @@ summary(dat$sqft_basement)
 ```{r}
 hist(dat$sqft_basement, main="Histogram of sqft_basement", xlab="sqft basement")
 ```
-The distribution is right-skewed
-
-
+The distribution is right-skewed. 
+Log-transforming the variable makes the distribution left-skewed, which 
+doesn't help:
+```{r}
+hist(log(dat$sqft_basement), main="Histogram of log(sqft_basement)",
+         xlab="log(sqft_basement)")
+```
+```{r}
+plot(lm(price~sqft_basement, data=dat), which=c(1,2))
+```
+The residual vs fitted plot doesn't show a linear trend.
+This is most likely due to the heavy influence of houses without a basement.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Year built
 ```{r}
-plot(log(dat$price)~dat$yr_built, xlab="year built", ylab="log(price)")
+plot(dat$price~dat$yr_built, xlab="year built", ylab="log(price)")
 ```
 It's hard to see the trends very well in this plot, so let's add another column 
 in which the yr_built-variable is separated into ranges of 10 years.
@@ -407,7 +502,7 @@ head(dat[, c("yr_built", "yr_built_10_range")])
 boxplot(log(dat$price)~dat$yr_built_10_range, 
         xlab="yr_built in ranges of 10 years", ylab="log(price)")
 ```
-Maybe ranges of 10 years make things more visible: 
+Maybe ranges of 20 years make things more visible: 
 ```{r}
 dat$yr_built_20_range <- cut(dat$yr_built, breaks=seq(1900,2020,20), 
                              labels=c("1900-1920", "1921-1940", "1941-1960", 
@@ -433,16 +528,28 @@ summary(dat$yr_built_10_range)
 ```{r}
 hist(dat$yr_built, main="Histogram of yr_built", xlab="yr_built")
 ```
-Yr_built doesn't follow a normal distribution.
+Yr_built doesn't follow a normal distribution. Let's delete the added columns
+since they didn't help.
+```{r}
+dat$yr_built_10_range <- NULL
+dat$yr_built_20_range <- NULL
+```
+```{r}
+plot(lm(price~yr_built, data=dat), which=c(1,2))
+```
 
+The residual vs fitted plot shows a fairly linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Year renovated
 ```{r}
-plot(log(dat$price)~dat$yr_renovated, xlab="renovated year", ylab="log(price)")
+plot(dat$price~dat$yr_renovated, xlab="renovated year", ylab="log(price)")
 ```
+
 Houses that weren't renovated have a value of dat$yr_renovated==0. This doesn't 
 look good in the graph, so let's take a look at samples that have a value != 0.
 ```{r}
-plot(log(dat[dat$yr_renovated!=0, "price"])~
+plot(dat[dat$yr_renovated!=0, "price"]~
        dat[dat$yr_renovated!=0, "yr_renovated"],
      xlab="renovation year", ylab="log(price)")
 ```
@@ -455,20 +562,35 @@ the samples that weren't renovated?
 cor(dat[dat$yr_renovated!=0, "price"], dat[dat$yr_renovated!=0, "yr_renovated"])
 ```
 There is no significant change.
-
 Data distribution:
 ```{r}
 hist(dat$yr_renovated, main="Histogram of yr_renovated", xlab="yr_renovated")
 ```
+
 The data doesn't follow a normal distribution.
+```{r}
+plot(lm(price~yr_renovated, data=dat), which=c(1,2))
+```
+
+It's better to take a look at the data without the houses that weren't 
+renovated:
+```{r}
+plot(lm(dat[dat$yr_renovated!=0, "price"]
+        ~dat[dat$yr_renovated!=0, "yr_renovated"], data=dat), which=c(1,2))
+```
+
+The residual vs fitted plot shows a fairly linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 
 ### Zipcode
 ```{r}
 aggregate(dat$price, list(dat$zipcode), FUN=mean)
 ```
 ```{r}
-boxplot(log(dat$price)~dat$zipcode, xlab="zipcode", ylab="log(price)")
+boxplot(dat$price~dat$zipcode, xlab="zipcode", ylab="log(price)")
 ```
+
 It's difficult to learn something from the zipcode-feature because there are 
 many different zipcodes and there is no information on how the zipcodes 
 were distributed among the regions (i.e. if similar zipcodes also mean a 
@@ -487,21 +609,23 @@ dat$zipcode_20_range <- cut(dat$zipcode, breaks=seq(98000,98200,20),
 head(dat[, c("zipcode", "zipcode_20_range")])
 ```
 ```{r}
-boxplot(log(dat$price)~dat$zipcode_20_range, 
+boxplot(dat$price~dat$zipcode_20_range, 
         xlab="zipcodes, grouped in ranges of 20", ylab="log(price)")
 ```
-No real trend can be seen when grouping the zipcodes. 
 
+No real trend can be seen when grouping the zipcodes. 
 Data distribution:
 ```{r}
 hist(dat$zipcode, main="Histogram of zipcode", xlab="zipcode")
 ```
+
 The data doesn't follow a normal distribution.
 
 ### Latitude coordinate
 ```{r}
-plot(log(dat$price)~dat$lat, xlab="latitude coordinate", ylab="log(price)")
+plot(dat$price~dat$lat, xlab="latitude coordinate", ylab="log(price)")
 ```
+
 Let's group the coordinates in order to get a better look at possible trends:
 
 ```{r}
@@ -514,9 +638,10 @@ dat$lat_005_range <- cut(dat$lat, breaks=seq(47.15, 47.80, 0.05),
 head(dat[, c("lat", "lat_005_range")])
 ```
 ```{r}
-plot(log(dat$price)~dat$lat_005_range, 
+plot(dat$price~dat$lat_005_range, 
      xlab="latitude coordinate in ranges of 0.05", ylab="log(price)")
 ```
+
 In this plot, it can be seen that the price is maximum for houses with a 
 latitude coordinate in the range of 47.61-47.65. Lower and higher latitudes
 result in a lower price generally.
@@ -525,7 +650,6 @@ cor(dat$price, dat$lat)
 ```
 There is a weak-medium positive correlation between the latitude coordinate and
 the price of the house.
-
 Data distribution:
 ```{r}
 summary(dat$lat)
@@ -534,13 +658,19 @@ summary(dat$lat)
 hist(dat$lat, main="Histogram of lat", xlab="lat")
 ```
 The distribution is left-skewed.
+```{r}
+plot(lm(price~lat, data=dat), which=c(1,2))
+```
 
+The residual vs fitted plot shows a fairly linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Longitude coordinate
 ```{r}
-plot(log(dat$price)~dat$long, xlab="longitude coordinate", ylab="log(price)")
+plot(dat$price~dat$long, xlab="longitude coordinate", ylab="log(price)")
 ```
-Let's group the coordinates once again:
 
+Let's group the coordinates once again:
 ```{r}
 # different notation used in order to make the ranges clear
 dat$long_01_range <- cut(dat$long, breaks=seq(-122.6, -121.2, 0.1), 
@@ -553,24 +683,27 @@ dat$long_01_range <- cut(dat$long, breaks=seq(-122.6, -121.2, 0.1),
                                   "-121.4<x<=-121.3", "-121.3<x<=-121.2"))
 head(dat[, c("long", "long_01_range")])
 ```
-
 ```{r}
-boxplot(log(dat$price)~dat$long_01_range, 
+boxplot(dat$price~dat$long_01_range, 
         xlab="longitude coordinate in ranges of 0.1", ylab="log(price)")
 ```
-
 ```{r}
 cor(dat$price, dat$long)
 ```
 There is almost no correlation between the longitude coordinate and the price.
-
 Data distribution:
 ```{r}
 summary(dat$long)
 hist(dat$long, main="Histogram of long", xlab="long")
 ```
 The distribution is right-skewed.
+```{r}
+plot(lm(price~long, data=dat), which=c(1,2))
+```
 
+The residual vs fitted plot shows a fairly linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Square footage of interior housing of 15 closest neighbors
 ```{r}
 dat$sqft_living15_500_range <- cut(dat$sqft_living15, breaks=seq(0, 6500, 500),
@@ -583,7 +716,7 @@ dat$sqft_living15_500_range <- cut(dat$sqft_living15, breaks=seq(0, 6500, 500),
 head(dat[, c("sqft_living15", "sqft_living15_500_range")])
 ```
 ```{r}
-boxplot(log(dat$price)~dat$sqft_living15_500_range, 
+boxplot(dat$price~dat$sqft_living15_500_range, 
         xlab="square foot of interior housing of 15 closest neighbors in 
         range of 500", ylab="log(price)")
 ```
@@ -597,19 +730,26 @@ price in general. However, there's one box that goes against that trend in the
 plot above, i.e. the one in the 1-500 range. But that is due to the fact that 
 there are only 2 samples in this range and this sould therefore not be regarded
 as representative.
-
 Data distribution:
 ```{r}
 summary(dat$sqft_living15)
 hist(dat$sqft_living15)
 ```
-The distribution is right-skewed.
+The distribution is right-skewed. Log-transforming the variable makes
+the histogram left-skewed and therefore is not helpful.
+```{r}
+plot(lm(price~sqft_living15, data=dat), which=c(1,2))
+```
 
+The residual vs fitted plot shows a fairly linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
 ### Square footage of land lots of 15 closest neighbors
 ```{r}
-plot(log(dat$price)~dat$sqft_lot15, 
+plot(dat$price~dat$sqft_lot15, 
      xlab="sqft of land lots of 15 closest neighbors", ylab="log(price)")
 ```
+
 The graph is heavily influenced by the two outliers with a very value of 
 sqft_lot15. Let's take a look at the distribution without these extreme 
 outliers:
@@ -634,7 +774,7 @@ head(dat[, c("sqft_lot15", "sqft_lot15_2000_range")])
 ```
 
 ```{r}
-plot(log(dat$"price")~dat$sqft_lot15_2000_range,
+plot(dat$"price"~dat$sqft_lot15_2000_range,
      xlab="sqft of land lots of 15 closest neighbors in 2000 range",
      ylab="log(price)")
 ```
@@ -642,13 +782,36 @@ plot(log(dat$"price")~dat$sqft_lot15_2000_range,
 cor(dat$price,dat$sqft_lot15)
 ```
 There is almost no correlation between the sqft_lot15-feature and the price
-of the houses. 
+of the houses. The correlation increases with a log-transformed 
+sqft_lot15-variable, so let's do it:
+```{r}
+dat$sqft_lot15 <- log(dat$sqft_lot15)
+```
+
 ```{r}
 summary(dat$sqft_lot15)
-hist(log(dat$sqft_lot15), main="Histogram of log(sqft_lot15", xlab="sqft_lot15")
+hist(dat$sqft_lot15, main="Histogram of log(sqft_lot15)", 
+     xlab="log(sqft_lot15)")
 ```
-This distribution is right-skewed.
 
+This distribution is right-skewed.
+```{r}
+plot(lm(price~sqft_lot15, data=dat), which=c(1,2))
+```
+
+The residual vs fitted plot shows a fairly linear trend.
+The normal Q-Q plot doesn't show any obvious departures from normality; the 
+majority of the points are all fit the line.
+
+Let's clean the dataframe and remove the created columns that are not needed
+for the models:
+```{r}
+library(dplyr)
+dat <- select(dat, -c(sqft_above_1000_range, zipcode_20_range, lat_005_range,
+                      long_01_range, sqft_living15_500_range, 
+                      sqft_lot15_2000_range))
+head(dat)
+```
 Now, it's time to select the most useful features. Let's take a look at the
 correlations with the dependent variable: 
 ```{r}
@@ -662,7 +825,6 @@ vct_corr
 ```
 Let's remove all features with a low correlation:
 ```{r}
-library(dplyr)
 dat_red <- select(dat, c(price, lat, bedrooms, sqft_basement, view, bathrooms,
                          sqft_living15, sqft_above, grade, sqft_living))
 head(dat_red)
@@ -671,6 +833,7 @@ head(dat_red)
 library(GGally)
 ggcorr(data=dat_red, label = TRUE, label_size = 3, label_round = 3)
 ```
+
 The selected features with the highest correlation with price (sqft_living, 
 grade, sqft_above and sqft_living15) all have a high correlation with
 each other, which has to be kept in mind when working on the model later.
@@ -678,14 +841,11 @@ each other, which has to be kept in mind when working on the model later.
 ggpairs(dat_red)
 ```
 
-
-Now, let's eliminate outliers:
+Now, let's create another dataset without outliers:
 ```{r}
 orig_length <- length(dat$price)
 dat_red_out <- dat_red
 ```
-
-
 Let's remove the samples for which the lat-value is below the lower
 or beyond the upper whisker:
 ```{r}
@@ -696,6 +856,7 @@ dat_red_out <- dat_red_out[dat_red_out$lat >= b_lat$stats[1] &
 l2 <- length(dat_red_out$price)
 sprintf("previous no. of samples: %s, new no. of samples: %s, new dataset contains %.2f%% of the samples of the previous dataset", l1, l2, (100*l2)/l1)
 ```
+
 Let's repeat that for the other features as well:
 ```{r}
 b_bedrooms <- boxplot(dat_red_out$bedrooms)
@@ -705,6 +866,7 @@ dat_red_out <- dat_red_out[dat_red_out$bedrooms >= b_bedrooms$stats[1] &
 l2 <- length(dat_red_out$price)
 sprintf("previous no. of samples: %s, new no. of samples: %s, new dataset contains %.2f%% of the samples of the previous dataset", l1, l2, (100*l2)/l1)
 ```
+
 ```{r}
 b_sqft_basement <- boxplot(dat_red_out$sqft_basement)
 l1 <- length(dat_red_out$price)
@@ -713,9 +875,9 @@ dat_red_out <- dat_red_out[dat_red_out$sqft_basement >= b_sqft_basement$stats[1]
 l2 <- length(dat_red_out$price)
 sprintf("previous no. of samples: %s, new no. of samples: %s, new dataset contains %.2f%% of the samples of the previous dataset", l1, l2, (100*l2)/l1)
 ```
+
 Since the view-feature isn't continuous and only has 5 levels, it doesn't make 
 sense to remove outliers based on a boxplot for this feature.
-
 ```{r}
 b_bathrooms <- boxplot(dat_red_out$bathrooms)
 l1 <- length(dat_red_out$price)
@@ -772,6 +934,9 @@ ggcorr(data=dat_red_out, label = TRUE, label_size = 3, label_round = 3)
 ggpairs(dat_red_out)
 ```
 
+It can be seen that there are some really strong correlations between
+some of the variables, which has to be kept in mind when building the models.
+
 # The Models
 ## Model 1
 Idea: 
@@ -782,103 +947,104 @@ model. For the next models, we should take the correlation inbetween the
 variables into account (see the ggcorr-plot above).
 ```{r}
 model_1 = lm(price ~ ., data=dat_red)
-model_1
+summary(model_1)
 ```
-We can see that sqft_living doesn't give us a result on the correlation, so we're going to remove it, which is something that already made sense to do since it had a very high correlation with sqft_above, which meant that they both gave very similar information.
-
+We can see that the bathrooms-feature doesn't give us a good result, so 
+we're going to remove it. 
 ```{r}
-dat_red$sqft_living<-NULL
-
+dat_red$bathrooms<-NULL
 ```
 ```{r}
 model_1 = lm(price ~ ., data=dat_red)
-model_1
-```
-
-
-
-
-```{r}
 summary(model_1)
 ```
-As we can see given our Pr(>|t|) results, all the variables are likely to have a relationship with price except for sqft_living15. This model gave us a 0.64 R-squared value, let's try to improve it.
+This model gave us a 0.73 R-squared value, let's try to improve it.
 ## Model 2
-Let's now try using dat_red_out, which is the dataset without removing the outliers.
-```{r}
-dat_red_out$sqft_living <- NULL
-```
-
+Let's now try using dat_red_out, which is the dataset after removing the 
+outliers.
 ```{r}
 model_2 = lm(price ~ ., data=dat_red_out)
-model_2
-```
-```{r}
 summary(model_2)
 ```
-The dataset without the outliers (dat_red) gave us a significantly better result so we're gonna stick with it for the next iterations.
-
+```{r}
+dat_red_out$bathrooms <- NULL
+```
+```{r}
+model_ = lm(price ~ ., data=dat_red_out)
+summary(model_2)
+```
+The dataset with the outliers (dat_red) gave us a significantly better result 
+(higher R-squared value), so we're gonna stick with it for the next iterations.
 ## Model 3
-The effect of sqft_above (sqft of the house without the basement) may not be constant throughout all values (in fact we could see when plotting it with price that their relation wasn't quite linear), therefore we will introduce a higher-order term by creating a new variable.
+The effect of sqft_above (sqft of the house without the basement) may not be 
+constant throughout all values (in fact we could see when plotting it with 
+price that their relation wasn't quite linear), therefore we will introduce a 
+higher-order term by creating a new variable.
 ```{r}
 dat_red$sqft_above2 <- dat_red$sqft_above^2
 ```
-
 ```{r}
 model_3 = lm(price ~ ., data=dat_red)
-model_3
-```
-```{r}
 summary(model_3)
 ```
-This model has a slightly better R-squared result than model 1. From 0.6414 to 0.6709.
-
+This model has a slightly better R-squared result than model 1. 
 ## Model 4
-It makes sense for houses with basement to have a higher price than houses without it. Let's add that new variable.
-
+It makes sense for houses with basement to have a higher price than houses 
+without it. Let's add that new variable.
 ```{r}
 dat_red$basement <- ifelse(dat_red$sqft_basement>0, 1,0)
 ```
 ```{r}
 model_4 = lm(price ~ ., data=dat_red)
-model_4
-```
-```{r}
 summary(model_4)
 ```
-The R-squared value has barely improved.
-
+The R-squared value has not improved.
 ## Model 5
-It could be that grade has a combined impact with other variables, for example if the house has two or more floors and the grade is good, the price would be higher. 
+It could be that grade has a combined impact with other variables, for example 
+if the house has two or more floors and the grade is good, the price would be 
+higher. 
 ```{r}
 dat_red$floors2 <- ifelse(dat$floors >= 2, 1, 0)
 dat_red$grade10 <- ifelse(dat_red$grade >= 10, 1, 0)
-
 ```
-We've also added back waterfront with the premise that if the grade of the house is good and it has a view to a waterfront, the price will be higher.
+We've also added back waterfront with the premise that if the grade of the 
+house is good and it has a view to a waterfront, the price will be higher.
 ```{r}
 model_5 = lm(price ~ . +floors2*grade10+dat$waterfront*grade10, data=dat_red)
 summary(model_5)
 ```
-
-The model has improved the value of R-squared from 0.6712 to 0.6935.
-
+The model has slightly improved the value of R-squared.
 ### Model 6
-Let's start again and use the dataset with all the variables, since even if they don't have a correlation with price it could be that some relationships between them do have a correlation.
+Let's start again and use the dataset with all the variables, since even if 
+they don't have a correlation with price it could be that some relationships 
+between them do have a correlation.
 ```{r}
 model_6 = lm(price ~ . , data=dat)
 summary(model_6)
 ```
-The R-squared value has significantly improved.
+The R-squared value has improved.
 
 ### Model 7
 Let's now add the improvements that we used before.
 ```{r}
-dat$sqft_basement<-NULL
+model_7 = lm(price ~ . +dat_red$sqft_above2
+             +dat_red$floors2*dat_red$grade10+waterfront*dat_red$grade10, 
+             data=dat)
+summary(model_7)
 ```
-
-
+The R-squared value has slightly improved. 
+Now, let's add an interaction term for sqft_above and sqft_basement, since
+there there is correlation between these variables as shown earlier.
 ```{r}
-model_6 = lm(price ~ . +dat_red$sqft_above2 +dat_red$floors2*dat_red$grade10+waterfront*dat_red$grade10 , data=dat)
-summary(model_6)
+model_8 <- lm(price ~ . +dat_red$sqft_above2
+              +dat_red$floors2*dat_red$grade10
+              +waterfront*dat_red$grade10
+              +dat_red$sqft_above*dat_red$sqft_basement, data=dat)
+summary(model_8)
 ```
-The R-squared value has slightly improved.
+The R-squared value has improved.
+# Conclusion
+
+
+
+
