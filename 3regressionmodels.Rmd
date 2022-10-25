@@ -42,7 +42,7 @@ summary(dat)
 ```
 ### Number of bedrooms
 ```{r}
-plot(dat$price~dat$bedrooms, xlab="#bedrooms", ylab="log(price)")
+plot(dat$price~dat$bedrooms, xlab="#bedrooms", ylab="price")
 ```
 
 Since the number of bedrooms isn't a continuous variable, the distribution
@@ -83,7 +83,7 @@ The normal Q-Q plot doesn't show any obvious departures from normality; the
 majority of the points are all fit the line.
 ### Number of bathrooms
 ```{r}
-plot(dat$price~dat$bathrooms, xlab="#bathrooms", ylab="log(price)")
+plot(dat$price~dat$bathrooms, xlab="#bathrooms", ylab="price")
 ```
 
 We can see that in this case there's some linear correlation, since the prices,
@@ -119,7 +119,7 @@ majority of the points are all fit the line.
 ### Number of square feet of the house
 ```{r}
 plot(dat$price~dat$sqft_living, xlab="#sqft of the home", 
-     ylab="log(price)")
+     ylab="price")
 ```
 
 We can see that there's a relationship between this variables but it seems like 
@@ -939,11 +939,10 @@ some of the variables, which has to be kept in mind when building the models.
 
 # The Models
 ## Model 1
-Idea: 
-predict price with all the other variables taken into account
+We will predict price with all the other variables taken into account
 (i.e. price~lat+bedroom+...+sqft_livng) for the two
 datasets dat_red and dat_red_out. Compare the results and improve on the better
-model. For the next models, we should take the correlation inbetween the 
+model. For the next models, we will take the correlation inbetween the 
 variables into account (see the ggcorr-plot above).
 ```{r}
 model_1 = lm(price ~ ., data=dat_red)
@@ -1055,7 +1054,63 @@ of the feature.
 We found that dataset (3) gave the best result; it gave us a R-squared value
 of 0.7715. 
 ## Explaining 3 parameters of the final model
+Let's now try to see the individual impact of three of our different parameters.
+We'll redo our last model taking out one parameter each time.
+First we'll remove grade.
+```{r}
+dat_test <- dat
+dat_test$grade<-NULL
+summary(dat_test)
+```
 
+
+```{r}
+model_7.1 <- lm(price ~ . +dat_red$sqft_above2
+              +dat_red$floors2
+              +waterfront
+              +dat_red$sqft_above*dat_red$sqft_basement, data=dat_test)
+summary(model_7.1)
+```
+As we can see, removing grade and its relations leads to a drop in the value of R-squared value of 0.0348.
+
+Now we'll try removing the parameter lat.
+```{r}
+dat_test <- dat
+dat_test$lat<-NULL
+summary(dat_test)
+```
+
+
+```{r}
+model_7.2 <- lm(price ~ . +dat_red$sqft_above2
+              +dat_red$floors2*dat_red$grade10
+              +waterfront*dat_red$grade10
+              +dat_red$sqft_above*dat_red$sqft_basement, data=dat_test)
+summary(model_7.2)
+```
+The r-squared value has dropped from 0.775 to 0.6677. We can see that the
+latitude of the house is a parameter with a lot of weight, which makes sense
+since latitude is a key component to know the location of a house, and house
+prices have drastic changes depending on the location.
+
+Finaly we'll try removing the parameter sqft_basement.
+```{r}
+dat_test <- dat
+dat_test$sqft_basement<-NULL
+summary(dat_test)
+```
+
+
+```{r}
+model_7.3 <- lm(price ~ . +dat_red$sqft_above2
+              +dat_red$floors2*dat_red$grade10
+              +waterfront*dat_red$grade10
+              +dat_red$sqft_above, data=dat_test)
+summary(model_7.3)
+```
+
+In this case the R-squared value has only dropped 0.0005,
+signifying that its relevance is small.
 
 ## Recommendations for how to improve the selling price of a home:
 These recommendations are based on the assumption that the house already 
