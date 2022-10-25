@@ -77,6 +77,7 @@ median). Especially strange is the outlier with 33 bedrooms
 ```{r}
 plot(lm(price~bedrooms, data=dat), which=c(1,2))
 ```
+
 The residual vs fitted plot shows a fairly linear trend with exception of the 
 one outlier.
 The normal Q-Q plot doesn't show any obvious departures from normality; the 
@@ -113,6 +114,7 @@ The data is not normally distributed.
 ```{r}
 plot(lm(price~bathrooms, data=dat), which=c(1,2))
 ```
+
 The residual vs fitted plot shows a fairly linear trend.
 The normal Q-Q plot doesn't show any obvious departures from normality; the 
 majority of the points are all fit the line.
@@ -135,12 +137,14 @@ summary(dat$sqft_living)
 hist(dat$sqft_living, main="Histogram of sqft_living", 
      xlab="sqft_living")
 ```
+
 The data doesn't look normally distributed, let's log-transform it:
 ```{r}
 dat$sqft_living <- log(dat$sqft_living)
 hist(dat$sqft_living, main="Histogram of log(sqft_living)", 
      xlab="log(sqft_living)")
 ```
+
 Although not with exact precision, the data seems normally distributed.
 ```{r}
 plot(lm(price~sqft_living, data=dat), which=c(1,2))
@@ -153,6 +157,7 @@ majority of the points are all fit the line.
 ```{r}
 plot(dat$price~dat$sqft_lot, xlab="#sqft of the lot", ylab="log(price)")
 ```
+
 There's no linear correlation between these variables.
 
 ```{r}
@@ -169,6 +174,7 @@ summary(dat$sqft_lot)
 ```{r}
 hist(dat$sqft_lot, main="Histogram of sqft_lot", xlab="sqft_lot")
 ```
+
 Let's log-transform it: 
 ```{r}
 dat$sqft_lot <- log(dat$sqft_lot)
@@ -179,6 +185,7 @@ This variable doesn't quite follow a normal distribution.
 ```{r}
 plot(lm(price~sqft_lot, data=dat), which=c(1,2))
 ```
+
 The residual vs fitted plot shows a fairly linear trend.
 The normal Q-Q plot doesn't show any obvious departures from normality; the 
 majority of the points are all fit the line.
@@ -202,6 +209,7 @@ table(dat$floors)
 ```{r}
 hist(dat$floors, main = "Histogram of floors", xlab="#floors")
 ```
+
 This variable doesn't follow a normal distribution.
 ```{r}
 plot(lm(price~floors, data=dat), which=c(1,2))
@@ -392,6 +400,7 @@ majority of the points are all fit the line.
 plot(dat$price~dat$sqft_above, xlab="sqft of the house", 
      ylab="log(price)")
 ```
+
 We can see that there's a relationship between those variables although it 
 doesn't seem quite linear.
 
@@ -414,6 +423,7 @@ plot(dat$price~dat$sqft_above_1000_range,
      xlab="sqft of the house (without basement) in range of 1000",
      ylab="log(price)")
 ```
+
 The trend "more sqft -> higher price" can be seen much easier in this plot.
 Data distribution:
 ```{r}
@@ -443,6 +453,7 @@ majority of the points are all fit the line.
 plot(dat$price~dat$sqft_basement, xlab="sqft of the basement", 
      ylab="log(price)")
 ```
+
 It can be seen that in general the price grows linearly with this variable. 
 Specially if we don't take into account the case where sqft_basement=0.
 ```{r}
@@ -468,6 +479,7 @@ summary(dat$sqft_basement)
 ```{r}
 hist(dat$sqft_basement, main="Histogram of sqft_basement", xlab="sqft basement")
 ```
+
 The distribution is right-skewed. 
 Log-transforming the variable makes the distribution left-skewed, which 
 doesn't help:
@@ -478,6 +490,7 @@ hist(log(dat$sqft_basement), main="Histogram of log(sqft_basement)",
 ```{r}
 plot(lm(price~sqft_basement, data=dat), which=c(1,2))
 ```
+
 The residual vs fitted plot doesn't show a linear trend.
 This is most likely due to the heavy influence of houses without a basement.
 The normal Q-Q plot doesn't show any obvious departures from normality; the 
@@ -486,6 +499,7 @@ majority of the points are all fit the line.
 ```{r}
 plot(dat$price~dat$yr_built, xlab="year built", ylab="log(price)")
 ```
+
 It's hard to see the trends very well in this plot, so let's add another column 
 in which the yr_built-variable is separated into ranges of 10 years.
 ```{r}
@@ -502,6 +516,7 @@ head(dat[, c("yr_built", "yr_built_10_range")])
 boxplot(log(dat$price)~dat$yr_built_10_range, 
         xlab="yr_built in ranges of 10 years", ylab="log(price)")
 ```
+
 Maybe ranges of 20 years make things more visible: 
 ```{r}
 dat$yr_built_20_range <- cut(dat$yr_built, breaks=seq(1900,2020,20), 
@@ -528,6 +543,7 @@ summary(dat$yr_built_10_range)
 ```{r}
 hist(dat$yr_built, main="Histogram of yr_built", xlab="yr_built")
 ```
+
 Yr_built doesn't follow a normal distribution. Let's delete the added columns
 since they didn't help.
 ```{r}
@@ -657,6 +673,7 @@ summary(dat$lat)
 ```{r}
 hist(dat$lat, main="Histogram of lat", xlab="lat")
 ```
+
 The distribution is left-skewed.
 ```{r}
 plot(lm(price~lat, data=dat), which=c(1,2))
@@ -696,6 +713,7 @@ Data distribution:
 summary(dat$long)
 hist(dat$long, main="Histogram of long", xlab="long")
 ```
+
 The distribution is right-skewed.
 ```{r}
 plot(lm(price~long, data=dat), which=c(1,2))
@@ -735,6 +753,7 @@ Data distribution:
 summary(dat$sqft_living15)
 hist(dat$sqft_living15)
 ```
+
 The distribution is right-skewed. Log-transforming the variable makes
 the histogram left-skewed and therefore is not helpful.
 ```{r}
@@ -1125,6 +1144,7 @@ better condition contributes to a higher grade:
 plot(dat$grade~dat$condition, xlab="Condition of the house",
      ylab="Grade of the house")
 ```
+
 - try to add more living space. A higher sqft_living-value results in a higher 
 price. Therefore, by adding for example more rooms to the house, the price
 could be improved.
