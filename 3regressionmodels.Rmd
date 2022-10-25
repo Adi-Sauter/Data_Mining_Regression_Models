@@ -1014,37 +1014,71 @@ model_5 = lm(price ~ . +floors2*grade10+dat$waterfront*grade10, data=dat_red)
 summary(model_5)
 ```
 The model has slightly improved the value of R-squared.
+This is the best R-squared value we obtained for our experiments with dat_red. 
+Let's take a look at models that use dat.
 ### Model 6
-Let's start again and use the dataset with all the variables, since even if 
-they don't have a correlation with price it could be that some relationships 
-between them do have a correlation.
+Let's first add the improvements that we used before.
 ```{r}
-model_6 = lm(price ~ . , data=dat)
-summary(model_6)
-```
-The R-squared value has improved.
-
-### Model 7
-Let's now add the improvements that we used before.
-```{r}
-model_7 = lm(price ~ . +dat_red$sqft_above2
+model_6 = lm(price ~ . +dat_red$sqft_above2
              +dat_red$floors2*dat_red$grade10+waterfront*dat_red$grade10, 
              data=dat)
-summary(model_7)
+summary(model_6)
 ```
 The R-squared value has slightly improved. 
 Now, let's add an interaction term for sqft_above and sqft_basement, since
 there there is correlation between these variables as shown earlier.
+### Model 7
 ```{r}
-model_8 <- lm(price ~ . +dat_red$sqft_above2
+model_7 <- lm(price ~ . +dat_red$sqft_above2
               +dat_red$floors2*dat_red$grade10
               +waterfront*dat_red$grade10
               +dat_red$sqft_above*dat_red$sqft_basement, data=dat)
-summary(model_8)
+summary(model_7)
 ```
 The R-squared value has improved.
 # Conclusion
+For our final model, we used the features of the dataset, some of which we
+log-transformed in order to make the distribution more similar to a normal 
+distribution. We log-transformed the dependent (price-)variable because
+it also would not have been normally distributed otherwise. We also transformed
+some of the features into factors. We added some interaction factors based 
+on correlation analysis between the features. Finally, we also added some 
+quadratic terms because the relationship between some of the features 
+and the price-variable looked quadratic. We also experimented with different
+datasets: 
+(1) A dataset in which only features with a high correlation with 
+price were used
+(2) A dataset in which only features with a high correlation with 
+price were used AND in which outliers were removed by looking at the boxplot
+of the feature.
+(3) The full dataset without removing any outliers.
+We found that dataset (3) gave the best result; it gave us a R-squared value
+of 0.7715. 
+## Explaining 3 parameters of the final model
 
 
+## Recommendations for how to improve the selling price of a home:
+These recommendations are based on the assumption that the house already 
+exists and has a fixed location and the size can only be changed in a reasonable
+sense. 
+To improve the selling price of a home, one could:
+- try to get the house to a higher grade/ rating. As shown by the correlation 
+and the model, a higher grade goes hand in hand with higher price. The grade
+can for example be improved by getting the house in a better condition, as a 
+better condition contributes to a higher grade:
+```{r}
+plot(dat$grade~dat$condition, xlab="Condition of the house",
+     ylab="Grade of the house")
+```
+- try to add more living space. A higher sqft_living-value results in a higher 
+price. Therefore, by adding for example more rooms to the house, the price
+could be improved.
 
+These recommendations are for new houses that were not yet built:
+To improve the selling price of a home, one could:
+- build the house in a neighborhood with big houses. The sqft_living15-value
+contributed positively to a higher price. Therefore, by placing the house 
+in a neighbourhood with big houses, the price could increase.
+- build the house with a waterfront. Houses with a view on water tended to have
+a higher price then houses without such a view, as shown earlier. 
 
